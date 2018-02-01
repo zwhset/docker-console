@@ -40,8 +40,9 @@ function createTerminal() {
 
   // socketURL = 'ws://100.73.35.8:2375/v1.24/containers/' + containerId + '/attach/ws?logs=0&stream=1&stdin=1&stdout=1&stderr=1';
   var host = window.location.hostname + ':' + window.location.port + '/';
+  var url = window.location.pathname;
   socketURL = 'ws://'+host+'/echo';
-  console.log(socketURL)
+  console.log('url:', url, 'socketURL: ', socketURL)
   socket = new WebSocket(socketURL);
   socket.onopen = runRealTerminal;
       socket.onclose = runFakeTerminal;
