@@ -1,6 +1,7 @@
 from flask import Flask, render_template, jsonify
 from flask_sockets import Sockets
 import docker
+from docker.errors import NotFound
 import time
 import configure 
 from thread_send import threadSend
@@ -31,16 +32,19 @@ def create_exec(container_id):
 
 @sockets.route('/echo/<container_id>')
 def echo_socket(ws, container_id):
-    exec_id = create_exec(container_id)
-    sock = docker_client.exec_start(exec_id, detach=False, tty=True, stream=False,
-                   socket=True)
-    sock.settimeout(600)
-    send = threadSend(ws,sock)
-    send.start()
-    while not ws.closed:
-        message = ws.receive()
-        if message is not None:
-            sock.send(message)
+    try:
+        exec_id = create_exec(container_id)
+        sock = docker_client.exec_start(exec_id, detach=False, tty=True, stream=False,
+                       socket=True)
+        sock.settimeout(600)
+        send = threadSend(ws,sock)
+        send.start()
+        while not ws.closed:
+            message = ws.receive()
+            if message is not None:
+                sock.send(message)
+    except NotFound:
+        ws.send("not fund container[%s]." % container_id)
 
 if __name__ == '__main__':
     from gevent import pywsgi
